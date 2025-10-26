@@ -1,353 +1,286 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OpenVoice — Prototype</title>
-  <style>
-    :root{--bg:#0f1724;--card:#0b1220;--accent:#6ee7b7;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#071029 0%, #0b1220 100%); color:#e6eef8}
-    .app{max-width:980px;margin:18px auto;padding:18px}
-    header{display:flex;align-items:center;gap:12px}
-    .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#0ea5a8,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
-    h1{font-size:20px;margin:0}
-    p.lead{margin:4px 0 18px;color:var(--muted)}
-
-    .container{display:grid;grid-template-columns:360px 1fr;gap:18px}
-
-    .left{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
-    .recorder{display:flex;flex-direction:column;gap:10px}
-    .big-btn{display:inline-grid;place-items:center;width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,#ff715b,#ff8f6b);color:white;font-weight:700;font-size:16px;border:none;cursor:pointer}
-    .timer{font-variant-numeric:tabular-nums;color:var(--muted)}
-    .controls{display:flex;gap:8px;align-items:center}
-    .small{background:var(--glass);padding:8px;border-radius:8px;color:var(--muted)}
-
-    .feed{background:var(--card);padding:12px;border-radius:12px;min-height:320px}
-    .post{display:flex;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);margin-bottom:10px}
-    .avatar{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,#334155,#0ea5a8);display:flex;align-items:center;justify-content:center;font-weight:700}
-    .meta{flex:1}
-    .meta .who{display:flex;justify-content:space-between;align-items:center}
-    .meta h3{margin:0;font-size:15px}
-    .meta p{margin:6px 0;color:var(--muted)}
-    .actions{display:flex;gap:8px;align-items:center}
-    .play{padding:8px 12px;border-radius:999px;border:none;background:linear-gradient(90deg,#06b6d4,#7c3aed);color:white;cursor:pointer}
-    .like{background:none;border:1px solid rgba(255,255,255,0.06);padding:6px;border-radius:8px;color:var(--muted);cursor:pointer}
-    .tag{background:rgba(255,255,255,0.03);padding:4px 8px;border-radius:999px;font-size:12px;color:var(--muted);margin-right:6px}
-
-    footer{margin-top:16px;color:var(--muted);font-size:13px}
-
-    @media (max-width:880px){.container{grid-template-columns:1fr}.left{order:2}.feed{order:1}}
-
-    canvas.wave{width:100%;height:48px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>OpenVoice — Prototype</title>
+<style>
+:root{--bg:#0f1724;--card:#0b1220;--accent:#6ee7b7;--muted:#94a3b8;--glass:rgba(255,255,255,0.03)}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,#071029 0%, #0b1220 100%); color:#e6eef8}
+.app{max-width:980px;margin:18px auto;padding:18px}
+header{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#0ea5a8,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
+h1{font-size:20px;margin:0}
+p.lead{margin:4px 0 18px;color:var(--muted)}
+.container{display:grid;grid-template-columns:360px 1fr;gap:18px}
+.left{background:var(--card);padding:14px;border-radius:12px;box-shadow:0 4px 18px rgba(2,6,23,0.6)}
+.recorder{display:flex;flex-direction:column;gap:10px}
+.big-btn{display:inline-grid;place-items:center;width:88px;height:88px;border-radius:50%;background:linear-gradient(180deg,#ff715b,#ff8f6b);color:white;font-weight:700;font-size:16px;border:none;cursor:pointer}
+.timer{font-variant-numeric:tabular-nums;color:var(--muted)}
+.controls{display:flex;gap:8px;align-items:center}
+.small{background:var(--glass);padding:8px;border-radius:8px;color:var(--muted)}
+.feed{background:var(--card);padding:12px;border-radius:12px;min-height:320px}
+.post{display:flex;gap:12px;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);margin-bottom:10px}
+.avatar{width:56px;height:56px;border-radius:10px;background:linear-gradient(180deg,#334155,#0ea5a8);display:flex;align-items:center;justify-content:center;font-weight:700}
+.meta{flex:1}
+.meta .who{display:flex;justify-content:space-between;align-items:center}
+.meta h3{margin:0;font-size:15px}
+.meta p{margin:6px 0;color:var(--muted)}
+.actions{display:flex;gap:8px;align-items:center}
+.play{padding:8px 12px;border-radius:999px;border:none;background:linear-gradient(90deg,#06b6d4,#7c3aed);color:white;cursor:pointer}
+.like{background:none;border:1px solid rgba(255,255,255,0.06);padding:6px;border-radius:8px;color:var(--muted);cursor:pointer}
+.tag{background:rgba(255,255,255,0.03);padding:4px 8px;border-radius:999px;font-size:12px;color:var(--muted);margin-right:6px}
+footer{margin-top:16px;color:var(--muted);font-size:13px}
+@media (max-width:880px){.container{grid-template-columns:1fr}.left{order:2}.feed{order:1}}
+canvas.wave{width:100%;height:48px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent)}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <div class="logo">OV</div>
-      <div>
-        <h1>OpenVoice — Prototype</h1>
-        <p class="lead">A real-voice, global micro-audio social app. All posts are human-recorded (≤30s).</p>
-      </div>
-    </header>
+<div class="app">
+<header>
+<div class="logo">OV</div>
+<div>
+<h1>OpenVoice — Prototype</h1>
+<p class="lead">A real-voice, global micro-audio social app. All posts are human-recorded (≤30s).</p>
+</div>
+</header>
+<div class="container">
+<aside class="left">
+<div class="recorder">
+<div style="display:flex;align-items:center;justify-content:space-between">
+<div>
+<div style="font-size:13px;color:var(--muted)">Record a 30s voice</div>
+<div style="font-size:12px;color:var(--muted);margin-top:6px">Real people only — no AI voices allowed</div>
+</div>
+<div class="small">Profile: <strong id="username">Guest</strong></div>
+</div>
+<div style="display:flex;gap:12px;align-items:center">
+<button id="recordBtn" class="big-btn">Rec</button>
+<div>
+<div class="timer" id="timer">00:00</div>
+<div style="margin-top:8px;display:flex;gap:8px">
+<div class="small" id="status">Idle</div>
+<div class="small">Max 30s</div>
+</div>
+</div>
+</div>
+<canvas class="wave" id="wave"></canvas>
+<div style="display:flex;gap:8px;align-items:center">
+<input id="caption" placeholder="Add a short caption (optional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
+<button id="postBtn" class="small">Post</button>
+</div>
+<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+<label class="tag"><input type="checkbox" id="locToggle" /> Include location</label>
+<label class="tag"><input type="checkbox" id="anonToggle" /> Post anonymously</label>
+<div style="flex:1"></div>
+<button id="clearAll" class="small">Clear all local posts</button>
+</div>
+<div style="margin-top:14px;color:var(--muted)">
+<strong>Tips:</strong>
+<ul style="padding-left:18px;margin:6px 0 0;color:var(--muted)">
+<li>Keep clips under 30s—short and sincere.</li>
+<li>Use local language and accents—authenticity matters.</li>
+<li>Respect others; report harmful content.</li>
+</ul>
+</div>
+</div>
+</aside>
+<main>
+<div class="feed" id="feed">
+<h2 style="margin-top:0">Live Voice Feed</h2>
+<div id="posts"></div>
+</div>
+</main>
+</div>
+<footer>
+Prototype — save this file as <code>index.html</code> and open in a modern browser. This page stores posts in localStorage and simulates a simple voice social feed.
+</footer>
+</div>
 
-    <div class="container">
-      <aside class="left">
-        <div class="recorder">
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-size:13px;color:var(--muted)">Record a 30s voice</div>
-              <div style="font-size:12px;color:var(--muted);margin-top:6px">Real people only — no AI voices allowed</div>
-            </div>
-            <div class="small">Profile: <strong id="username">Guest</strong></div>
-          </div>
+<script>
+// ----- 基础元素 -----
+const recordBtn = document.getElementById('recordBtn');
+const postBtn = document.getElementById('postBtn');
+const timerEl = document.getElementById('timer');
+const statusEl = document.getElementById('status');
+const waveCanvas = document.getElementById('wave');
+const captionInput = document.getElementById('caption');
+const postsEl = document.getElementById('posts');
+const locToggle = document.getElementById('locToggle');
+const anonToggle = document.getElementById('anonToggle');
+const clearAll = document.getElementById('clearAll');
+const usernameEl = document.getElementById('username');
 
-          <div style="display:flex;gap:12px;align-items:center">
-            <button id="recordBtn" class="big-btn">Rec</button>
-            <div>
-              <div class="timer" id="timer">00:00</div>
-              <div style="margin-top:8px;display:flex;gap:8px">
-                <div class="small" id="status">Idle</div>
-                <div class="small">Max 30s</div>
-              </div>
-            </div>
-          </div>
+postBtn.disabled = true;
 
-          <canvas class="wave" id="wave"></canvas>
+let mediaStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recording = false;
+let recordStart = 0;
+let maxSeconds = 30;
 
-          <div style="display:flex;gap:8px;align-items:center">
-            <input id="caption" placeholder="Add a short caption (optional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
-            <button id="postBtn" class="small">Post</button>
-          </div>
+const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+let analyser = audioCtx.createAnalyser();
+analyser.fftSize=2048;
+const bufferLength=analyser.fftSize;
+const dataArray=new Uint8Array(bufferLength);
 
-          <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-            <label class="tag"><input type="checkbox" id="locToggle" /> Include location</label>
-            <label class="tag"><input type="checkbox" id="anonToggle" /> Post anonymously</label>
-            <div style="flex:1"></div>
-            <button id="clearAll" class="small">Clear all local posts</button>
-          </div>
-        </div>
-
-        <div style="margin-top:14px;color:var(--muted)">
-          <strong>Tips:</strong>
-          <ul style="padding-left:18px;margin:6px 0 0;color:var(--muted)">
-            <li>Keep clips under 30s—short and sincere.</li>
-            <li>Use local language and accents—authenticity matters.</li>
-            <li>Respect others; report harmful content.</li>
-          </ul>
-        </div>
-      </aside>
-
-      <main>
-        <div class="feed" id="feed">
-          <h2 style="margin-top:0">Live Voice Feed</h2>
-          <div id="posts"></div>
-        </div>
-
-        <div style="height:14px"></div>
-
-        <div class="feed" style="margin-top:12px">
-          <h3 style="margin-top:0">Explore</h3>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            <button class="small" onclick="filterTag('all')">All</button>
-            <button class="small" onclick="filterTag('travel')">#travel</button>
-            <button class="small" onclick="filterTag('food')">#food</button>
-            <button class="small" onclick="filterTag('story')">#story</button>
-            <button class="small" onclick="filterTag('night')">#night</button>
-            <button class="small" onclick="filterTag('local')">#local</button>
-            <div style="flex:1"></div>
-            <input id="search" placeholder="Search caption" class="small" style="width:180px;padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)" />
-            <button class="small" onclick="doSearch()">Search</button>
-          </div>
-          <small style="color:var(--muted)">VoiceMap and global ranking are future features in this prototype.</small>
-        </div>
-      </main>
-    </div>
-
-    <footer>
-      Prototype — save this file as <code>index.html</code> and open in a modern browser. This page stores posts in localStorage and simulates a simple voice social feed.
-    </footer>
-  </div>
-
-  <script>
-    const recordBtn = document.getElementById('recordBtn');
-    const postBtn = document.getElementById('postBtn');
-    const timerEl = document.getElementById('timer');
-    const statusEl = document.getElementById('status');
-    const waveCanvas = document.getElementById('wave');
-    const captionInput = document.getElementById('caption');
-    const postsEl = document.getElementById('posts');
-    const locToggle = document.getElementById('locToggle');
-    const anonToggle = document.getElementById('anonToggle');
-    const clearAll = document.getElementById('clearAll');
-    const usernameEl = document.getElementById('username');
-
-    let mediaStream = null;
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let recording = false;
-    let recordStart = 0;
-    let maxSeconds = 30;
-
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048;
-    const bufferLength = analyser.fftSize;
-    const dataArray = new Uint8Array(bufferLength);
-
-    function drawWave(){
-      const canvas = waveCanvas;
-      const ctx = canvas.getContext('2d');
-      canvas.width = canvas.clientWidth * devicePixelRatio;
-      canvas.height = canvas.clientHeight * devicePixelRatio;
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.lineWidth = 2*devicePixelRatio;
-      ctx.strokeStyle = 'rgba(255,255,255,0.85)';
-      function render(){
-        requestAnimationFrame(render);
-        if(!recording){ return; }
-        analyser.getByteTimeDomainData(dataArray);
-        ctx.fillStyle = 'rgba(255,255,255,0.02)';
-        ctx.fillRect(0,0,canvas.width,canvas.height);
-        ctx.beginPath();
-        const sliceWidth = canvas.width / bufferLength;
-        let x = 0;
-        for(let i=0;i<bufferLength;i++){
-          const v = dataArray[i]/128.0;
-          const y = v * canvas.height/2;
-          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-          x += sliceWidth;
-        }
-        ctx.lineTo(canvas.width,canvas.height/2);
-        ctx.stroke();
-      }
-      render();
+// ----- 波形可视化 -----
+function drawWave(){
+  const canvas=waveCanvas;
+  const ctx=canvas.getContext('2d');
+  canvas.width = canvas.clientWidth*devicePixelRatio;
+  canvas.height = canvas.clientHeight*devicePixelRatio;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.lineWidth=2*devicePixelRatio;
+  ctx.strokeStyle='rgba(255,255,255,0.85)';
+  function render(){
+    requestAnimationFrame(render);
+    if(!recording) return;
+    analyser.getByteTimeDomainData(dataArray);
+    ctx.fillStyle='rgba(255,255,255,0.02)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.beginPath();
+    let sliceWidth=canvas.width/bufferLength,x=0;
+    for(let i=0;i<bufferLength;i++){
+      const v=dataArray[i]/128.0;
+      const y=v*canvas.height/2;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      x+=sliceWidth;
     }
+    ctx.lineTo(canvas.width,canvas.height/2);
+    ctx.stroke();
+  }
+  render();
+}
 
-    async function ensureMic(){
-      if(mediaStream) return mediaStream;
-      try{
-        mediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
-        const source = audioCtx.createMediaStreamSource(mediaStream);
-        source.connect(analyser);
-        return mediaStream;
-      }catch(e){
-        alert('Microphone access is required to record.');
-        throw e;
-      }
-    }
+// ----- 获取麦克风 -----
+async function ensureMic(){
+  if(mediaStream) return mediaStream;
+  try{
+    mediaStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const source = audioCtx.createMediaStreamSource(mediaStream);
+    source.connect(analyser);
+    return mediaStream;
+  }catch(e){
+    alert('Microphone access is required to record.');
+    throw e;
+  }
+}
 
-    recordBtn.addEventListener('click', async ()=>{
-      if(recording){ stopRecording(); return; }
-      await startRecording();
-    });
+// ----- 录音逻辑 -----
+recordBtn.addEventListener('click', async ()=>{
+  if(recording){ stopRecording(); return; }
+  await startRecording();
+});
 
-    async function startRecording(){
-      try{
-        await ensureMic();
-        recordedChunks = [];
-        mediaRecorder = new MediaRecorder(mediaStream);
-        mediaRecorder.ondataavailable = e=>{ if(e.data.size>0) recordedChunks.push(e.data); };
-        mediaRecorder.onstop = ()=>{
-          statusEl.textContent = 'Recorded';
-        };
-        mediaRecorder.start();
-        recording = true;
-        recordStart = Date.now();
-        statusEl.textContent = 'Recording...';
-        recordBtn.textContent = 'Stop';
-        drawWave();
-        const tick = ()=>{
-          if(!recording) return;
-          const s = Math.floor((Date.now()-recordStart)/1000);
-          const mm = String(Math.floor(s/60)).padStart(2,'0');
-          const ss = String(s%60).padStart(2,'0');
-          timerEl.textContent = mm+':'+ss;
-          if(s>=maxSeconds){ stopRecording(); }
-          else requestAnimationFrame(tick);
-        };
-        tick();
-      }catch(e){ console.error(e); }
-    }
-
-    function stopRecording(){
+async function startRecording(){
+  try{
+    await ensureMic();
+    recordedChunks=[];
+    mediaRecorder=new MediaRecorder(mediaStream);
+    mediaRecorder.ondataavailable=e=>{if(e.data.size>0) recordedChunks.push(e.data);};
+    mediaRecorder.start();
+    recording=true;
+    recordStart=Date.now();
+    statusEl.textContent='Recording...';
+    recordBtn.textContent='Stop';
+    postBtn.disabled=true;
+    drawWave();
+    const tick=()=>{
       if(!recording) return;
-      mediaRecorder.stop();
-      recording = false;
-      recordBtn.textContent = 'Rec';
-      const blob = new Blob(recordedChunks,{type:'audio/webm'});
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        const base64 = reader.result.split(',')[1];
-        sessionStorage.setItem('pendingBase64', base64);
-      };
-      reader.readAsDataURL(blob);
-      statusEl.textContent = 'Ready to post';
-    }
+      const s=Math.floor((Date.now()-recordStart)/1000);
+      const mm=String(Math.floor(s/60)).padStart(2,'0');
+      const ss=String(s%60).padStart(2,'0');
+      timerEl.textContent=mm+':'+ss;
+      if(s>=maxSeconds){ stopRecording(); }
+      else requestAnimationFrame(tick);
+    };
+    tick();
+  }catch(e){ console.error(e); }
+}
 
-    postBtn.addEventListener('click', async ()=>{
-      const base64 = sessionStorage.getItem('pendingBase64');
-      if(!base64){ alert('Record a clip first.'); return; }
-      let loc = null;
-      if(locToggle.checked){
-        try{
-          const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej));
-          loc = {lat:pos.coords.latitude,lon:pos.coords.longitude};
-        }catch(e){ console.warn('Location denied'); loc = null; }
-      }
-      const caption = captionInput.value.trim();
-      const tags = extractTags(caption);
-      const anon = anonToggle.checked;
-      const id = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-      const obj = {id, caption, tags, anon, loc, timestamp:Date.now(), likes:0, replies:[], base64, mime:'audio/webm'};
-      savePost(obj);
-      sessionStorage.removeItem('pendingBase64');
-      captionInput.value = '';
-      statusEl.textContent = 'Posted';
-      renderPosts();
+function stopRecording(){
+  if(!recording) return;
+  mediaRecorder.stop();
+  recording=false;
+  recordBtn.textContent='Rec';
+  const blob=new Blob(recordedChunks,{type:'audio/webm'});
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const base64=reader.result.split(',')[1];
+    sessionStorage.setItem('pendingBase64',base64);
+    statusEl.textContent='Ready to post';
+    postBtn.disabled=false;
+  };
+  reader.readAsDataURL(blob);
+}
+
+// ----- 发布逻辑 -----
+postBtn.addEventListener('click', async ()=>{
+  const base64=sessionStorage.getItem('pendingBase64');
+  if(!base64){ alert('Record a clip first.'); return; }
+  let loc=null;
+  if(locToggle.checked){
+    try{
+      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej));
+      loc={lat:pos.coords.latitude,lon:pos.coords.longitude};
+    }catch(e){ console.warn('Location denied'); loc=null; }
+  }
+  const caption=captionInput.value.trim();
+  const tags=(caption||'').split(/\s+/).filter(t=>t.startsWith('#')).map(t=>t.replace('#',''));
+  const anon=anonToggle.checked;
+  const id='p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const obj={id,caption,tags,anon,loc,timestamp:Date.now(),likes:0,replies:[],base64,mime:'audio/webm'};
+  const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
+  list.unshift(obj);
+  localStorage.setItem('openvoice_posts_v1',JSON.stringify(list));
+  sessionStorage.removeItem('pendingBase64');
+  captionInput.value='';
+  statusEl.textContent='Posted';
+  postBtn.disabled=true;
+  renderPosts();
+});
+
+// ----- 渲染列表 -----
+function renderPosts(){
+  const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
+  postsEl.innerHTML='';
+  if(list.length===0){ postsEl.innerHTML='<div style="color:var(--muted)">No posts yet — record one!</div>'; return; }
+  list.forEach(p=>{
+    const div=document.createElement('div'); div.className='post';
+    const av=document.createElement('div'); av.className='avatar'; av.textContent=p.anon?'??':'U';
+    const meta=document.createElement('div'); meta.className='meta';
+    const whoRow=document.createElement('div'); whoRow.className='who';
+    const h=document.createElement('h3'); h.textContent=p.anon?'Anonymous':'Voice';
+    const when=document.createElement('div'); when.style.color='var(--muted)'; when.style.fontSize='12px'; when.textContent=timeAgo(p.timestamp);
+    whoRow.appendChild(h); whoRow.appendChild(when);
+    const cap=document.createElement('p'); cap.textContent=p.caption||'';
+    const tagsWrap=document.createElement('div'); tagsWrap.style.marginTop='6px';
+    (p.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.className='tag'; s.textContent='#'+t; tagsWrap.appendChild(s); });
+    const controls=document.createElement('div'); controls.className='actions';
+    const play=document.createElement('button'); play.className='play'; play.textContent='Play';
+    let audioUrl=null;
+    play.addEventListener('click',()=>{
+      if(!audioUrl){ const byteString=atob(p.base64); const ab=new ArrayBuffer(byteString.length); const ia=new Uint8Array(ab); for(let i=0;i<byteString.length;i++) ia[i]=byteString.charCodeAt(i); audioUrl=URL.createObjectURL(new Blob([ab],{type:p.mime})); }
+      const a=new Audio(audioUrl); a.play();
     });
+    const likeBtn=document.createElement('button'); likeBtn.className='like'; likeBtn.textContent='❤ '+p.likes;
+    likeBtn.addEventListener('click',()=>{ p.likes++; savePost(p); renderPosts(); });
+    controls.appendChild(play); controls.appendChild(likeBtn);
+    meta.appendChild(whoRow); meta.appendChild(cap); meta.appendChild(tagsWrap); meta.appendChild(controls);
+    div.appendChild(av); div.appendChild(meta);
+    postsEl.appendChild(div);
+  });
+}
+function savePost(post){ const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]'); const idx=list.findIndex(x=>x.id===post.id); if(idx>=0){ list[idx]=post; } else { list.unshift(post); } localStorage.setItem('openvoice_posts_v1',JSON.stringify(list)); }
+function timeAgo(ts){ const d=Date.now()-ts; if(d<60000)return'just now'; if(d<3600000)return Math.floor(d/60000)+'m'; if(d<86400000)return Math.floor(d/3600000)+'h'; return new Date(ts).toLocaleString(); }
+clearAll.addEventListener('click',()=>{ if(confirm('Clear all local posts?')){ localStorage.removeItem('openvoice_posts_v1'); renderPosts(); } });
 
-    function extractTags(text){
-      const tags = [];
-      (text||'').split(/\s+/).forEach(t=>{ if(t.startsWith('#')) tags.push(t.replace('#','')) });
-      return tags;
-    }
-
-    function loadPosts(){
-      try{
-        const raw = localStorage.getItem('openvoice_posts_v1');
-        return raw?JSON.parse(raw):[];
-      }catch(e){ return []; }
-    }
-    function savePosts(list){ localStorage.setItem('openvoice_posts_v1', JSON.stringify(list)); }
-    function savePost(post){ const list=loadPosts(); list.unshift(post); savePosts(list); }
-
-    function renderPosts(filterTag=null,searchTerm=null){
-      const list = loadPosts();
-      postsEl.innerHTML = '';
-      const filtered = list.filter(p=>{
-        if(filterTag && filterTag!=='all') return p.tags.includes(filterTag);
-        if(searchTerm && searchTerm.length>0) return (p.caption||'').toLowerCase().includes(searchTerm.toLowerCase());
-        return true;
-      });
-      if(filtered.length===0){ postsEl.innerHTML = '<div style="color:var(--muted)">No posts yet — record one on the left!</div>'; return; }
-      filtered.forEach(p=>{
-        const div = document.createElement('div'); div.className='post';
-        const av = document.createElement('div'); av.className='avatar'; av.textContent = p.anon? '??':'U';
-        const meta = document.createElement('div'); meta.className='meta';
-        const whoRow = document.createElement('div'); whoRow.className='who';
-        const h = document.createElement('h3'); h.textContent = p.anon? 'Anonymous' : (p.caption || 'Voice');
-        const when = document.createElement('div'); when.style.color='var(--muted)'; when.style.fontSize='12px'; when.textContent = timeAgo(p.timestamp);
-        whoRow.appendChild(h); whoRow.appendChild(when);
-        const cap = document.createElement('p'); cap.textContent = p.caption || ''; 
-        const tagsWrap = document.createElement('div'); tagsWrap.style.marginTop='6px';
-        (p.tags||[]).forEach(t=>{ const s = document.createElement('span'); s.className='tag'; s.textContent = '#'+t; tagsWrap.appendChild(s); });
-
-        const controls = document.createElement('div'); controls.className='actions';
-        const play = document.createElement('button'); play.className='play'; play.textContent='Play';
-        let audioUrl = null;
-        play.addEventListener('click',()=>{
-          if(!audioUrl){
-            const byteString = atob(p.base64);
-            const ab = new ArrayBuffer(byteString.length);
-            const ia = new Uint8Array(ab);
-            for(let i=0;i<byteString.length;i++) ia[i]=byteString.charCodeAt(i);
-            const blob = new Blob([ab], {type:p.mime});
-            audioUrl = URL.createObjectURL(blob);
-          }
-          const a = new Audio(audioUrl);
-          a.play();
-        });
-        const likeBtn = document.createElement('button'); likeBtn.className='like'; likeBtn.textContent='❤ '+p.likes;
-        likeBtn.addEventListener('click',()=>{ p.likes++; updatePost(p); likeBtn.textContent='❤ '+p.likes; });
-
-        controls.appendChild(play); controls.appendChild(likeBtn);
-        meta.appendChild(whoRow);
-        meta.appendChild(cap);
-        meta.appendChild(tagsWrap);
-        meta.appendChild(controls);
-        div.appendChild(av); div.appendChild(meta);
-        postsEl.appendChild(div);
-      });
-    }
-
-    function timeAgo(ts){ const d = Date.now()-ts; if(d<60000) return 'just now'; if(d<3600000) return Math.floor(d/60000)+'m'; if(d<86400000) return Math.floor(d/3600000)+'h'; return new Date(ts).toLocaleString(); }
-
-    function updatePost(post){ const list=loadPosts(); const i=list.findIndex(x=>x.id===post.id); if(i>=0){ list[i]=post; savePosts(list); } }
-
-    function filterTag(tag){ renderPosts(tag,null); }
-    function doSearch(){ const t = document.getElementById('search').value.trim(); renderPosts(null,t); }
-
-    clearAll.addEventListener('click', ()=>{ if(confirm('Clear all local posts?')){ localStorage.removeItem('openvoice_posts_v1'); renderPosts(); } });
-
-    const name = localStorage.getItem('openvoice_name') || '';
-    if(name){ usernameEl.textContent = name; }
-    usernameEl.addEventListener && usernameEl.addEventListener('click', ()=>{ const n=prompt('Set your display name'); if(n){ localStorage.setItem('openvoice_name',n); usernameEl.textContent=n; } });
-
-    // seed sample
-    const list=loadPosts(); if(list.length===0){ savePosts([{id:'p_seed_1', caption:'Hello from the demo — I love short voice posts!', tags:['demo','welcome'], anon:false, loc:null, timestamp:Date.now()-600000, likes:3, replies:[], base64:'', mime:''}]); }
-    renderPosts();
-  </script>
+// ----- 初始化 -----
+renderPosts();
+</script>
 </body>
 </html>
