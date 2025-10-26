@@ -68,7 +68,7 @@ canvas.wave{width:100%;height:48px;border-radius:8px;background:linear-gradient(
 <canvas class="wave" id="wave"></canvas>
 <div style="display:flex;gap:8px;align-items:center">
 <input id="caption" placeholder="Add a short caption (optional)" style="flex:1;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:inherit" />
-<button id="postBtn" class="small">Post</button>
+<button id="postBtn" class="small" disabled>Post</button>
 </div>
 <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
 <label class="tag"><input type="checkbox" id="locToggle" /> Include location</label>
@@ -99,7 +99,6 @@ Prototype — save this file as <code>index.html</code> and open in a modern bro
 </div>
 
 <script>
-// ----- 基础元素 -----
 const recordBtn = document.getElementById('recordBtn');
 const postBtn = document.getElementById('postBtn');
 const timerEl = document.getElementById('timer');
@@ -112,8 +111,6 @@ const anonToggle = document.getElementById('anonToggle');
 const clearAll = document.getElementById('clearAll');
 const usernameEl = document.getElementById('username');
 
-postBtn.disabled = true;
-
 let mediaStream = null;
 let mediaRecorder = null;
 let recordedChunks = [];
@@ -123,14 +120,13 @@ let maxSeconds = 30;
 
 const audioCtx = new (window.AudioContext||window.webkitAudioContext)();
 let analyser = audioCtx.createAnalyser();
-analyser.fftSize=2048;
-const bufferLength=analyser.fftSize;
-const dataArray=new Uint8Array(bufferLength);
+analyser.fftSize = 2048;
+const bufferLength = analyser.fftSize;
+const dataArray = new Uint8Array(bufferLength);
 
-// ----- 波形可视化 -----
 function drawWave(){
-  const canvas=waveCanvas;
-  const ctx=canvas.getContext('2d');
+  const canvas = waveCanvas;
+  const ctx = canvas.getContext('2d');
   canvas.width = canvas.clientWidth*devicePixelRatio;
   canvas.height = canvas.clientHeight*devicePixelRatio;
   ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -143,7 +139,7 @@ function drawWave(){
     ctx.fillStyle='rgba(255,255,255,0.02)';
     ctx.fillRect(0,0,canvas.width,canvas.height);
     ctx.beginPath();
-    let sliceWidth=canvas.width/bufferLength,x=0;
+    let sliceWidth = canvas.width / bufferLength, x=0;
     for(let i=0;i<bufferLength;i++){
       const v=dataArray[i]/128.0;
       const y=v*canvas.height/2;
@@ -156,7 +152,6 @@ function drawWave(){
   render();
 }
 
-// ----- 获取麦克风 -----
 async function ensureMic(){
   if(mediaStream) return mediaStream;
   try{
@@ -170,7 +165,6 @@ async function ensureMic(){
   }
 }
 
-// ----- 录音逻辑 -----
 recordBtn.addEventListener('click', async ()=>{
   if(recording){ stopRecording(); return; }
   await startRecording();
@@ -180,21 +174,21 @@ async function startRecording(){
   try{
     await ensureMic();
     recordedChunks=[];
-    mediaRecorder=new MediaRecorder(mediaStream);
-    mediaRecorder.ondataavailable=e=>{if(e.data.size>0) recordedChunks.push(e.data);};
+    mediaRecorder = new MediaRecorder(mediaStream);
+    mediaRecorder.ondataavailable = e=>{if(e.data.size>0) recordedChunks.push(e.data);};
     mediaRecorder.start();
-    recording=true;
-    recordStart=Date.now();
-    statusEl.textContent='Recording...';
-    recordBtn.textContent='Stop';
-    postBtn.disabled=true;
+    recording = true;
+    recordStart = Date.now();
+    statusEl.textContent = 'Recording...';
+    recordBtn.textContent = 'Stop';
+    postBtn.disabled = true;
     drawWave();
     const tick=()=>{
       if(!recording) return;
       const s=Math.floor((Date.now()-recordStart)/1000);
       const mm=String(Math.floor(s/60)).padStart(2,'0');
       const ss=String(s%60).padStart(2,'0');
-      timerEl.textContent=mm+':'+ss;
+      timerEl.textContent = mm+':'+ss;
       if(s>=maxSeconds){ stopRecording(); }
       else requestAnimationFrame(tick);
     };
@@ -207,67 +201,65 @@ function stopRecording(){
   mediaRecorder.stop();
   recording=false;
   recordBtn.textContent='Rec';
-  const blob=new Blob(recordedChunks,{type:'audio/webm'});
-  const reader=new FileReader();
-  reader.onload=()=>{
-    const base64=reader.result.split(',')[1];
-    sessionStorage.setItem('pendingBase64',base64);
-    statusEl.textContent='Ready to post';
-    postBtn.disabled=false;
+  const blob = new Blob(recordedChunks, {type:'audio/webm'});
+  const reader = new FileReader();
+  reader.onload = () => {
+    const base64 = reader.result.split(',')[1];
+    sessionStorage.setItem('pendingBase64', base64);
+    statusEl.textContent = 'Ready to post';
+    postBtn.disabled = false; // ✅ 录音完成后启用 Post
   };
   reader.readAsDataURL(blob);
 }
 
-// ----- 发布逻辑 -----
 postBtn.addEventListener('click', async ()=>{
-  const base64=sessionStorage.getItem('pendingBase64');
+  const base64 = sessionStorage.getItem('pendingBase64');
   if(!base64){ alert('Record a clip first.'); return; }
-  let loc=null;
+  postBtn.disabled = true;
+  let loc = null;
   if(locToggle.checked){
     try{
-      const pos=await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej));
-      loc={lat:pos.coords.latitude,lon:pos.coords.longitude};
-    }catch(e){ console.warn('Location denied'); loc=null; }
+      const pos = await new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej));
+      loc = {lat: pos.coords.latitude, lon: pos.coords.longitude};
+    }catch(e){ console.warn('Location denied'); loc = null; }
   }
-  const caption=captionInput.value.trim();
-  const tags=(caption||'').split(/\s+/).filter(t=>t.startsWith('#')).map(t=>t.replace('#',''));
-  const anon=anonToggle.checked;
-  const id='p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
-  const obj={id,caption,tags,anon,loc,timestamp:Date.now(),likes:0,replies:[],base64,mime:'audio/webm'};
-  const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
+  const caption = captionInput.value.trim();
+  const tags = (caption||'').split(/\s+/).filter(t=>t.startsWith('#')).map(t=>t.replace('#',''));
+  const anon = anonToggle.checked;
+  const id = 'p_'+Date.now()+'_'+Math.random().toString(36).slice(2,7);
+  const obj = {id, caption, tags, anon, loc, timestamp:Date.now(), likes:0, replies:[], base64, mime:'audio/webm'};
+  const list = JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
   list.unshift(obj);
-  localStorage.setItem('openvoice_posts_v1',JSON.stringify(list));
+  localStorage.setItem('openvoice_posts_v1', JSON.stringify(list));
   sessionStorage.removeItem('pendingBase64');
   captionInput.value='';
   statusEl.textContent='Posted';
-  postBtn.disabled=true;
   renderPosts();
 });
 
-// ----- 渲染列表 -----
 function renderPosts(){
-  const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
+  const list = JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]');
   postsEl.innerHTML='';
   if(list.length===0){ postsEl.innerHTML='<div style="color:var(--muted)">No posts yet — record one!</div>'; return; }
   list.forEach(p=>{
-    const div=document.createElement('div'); div.className='post';
-    const av=document.createElement('div'); av.className='avatar'; av.textContent=p.anon?'??':'U';
-    const meta=document.createElement('div'); meta.className='meta';
-    const whoRow=document.createElement('div'); whoRow.className='who';
-    const h=document.createElement('h3'); h.textContent=p.anon?'Anonymous':'Voice';
-    const when=document.createElement('div'); when.style.color='var(--muted)'; when.style.fontSize='12px'; when.textContent=timeAgo(p.timestamp);
+    const div = document.createElement('div'); div.className='post';
+    const av = document.createElement('div'); av.className='avatar'; av.textContent = p.anon?'??':'U';
+    const meta = document.createElement('div'); meta.className='meta';
+    const whoRow = document.createElement('div'); whoRow.className='who';
+    const h = document.createElement('h3'); h.textContent = p.anon?'Anonymous':'Voice';
+    const when = document.createElement('div'); when.style.color='var(--muted)'; when.style.fontSize='12px'; when.textContent = timeAgo(p.timestamp);
     whoRow.appendChild(h); whoRow.appendChild(when);
-    const cap=document.createElement('p'); cap.textContent=p.caption||'';
-    const tagsWrap=document.createElement('div'); tagsWrap.style.marginTop='6px';
-    (p.tags||[]).forEach(t=>{ const s=document.createElement('span'); s.className='tag'; s.textContent='#'+t; tagsWrap.appendChild(s); });
-    const controls=document.createElement('div'); controls.className='actions';
-    const play=document.createElement('button'); play.className='play'; play.textContent='Play';
-    let audioUrl=null;
+    const cap = document.createElement('p'); cap.textContent = p.caption||'';
+    const tagsWrap = document.createElement('div'); tagsWrap.style.marginTop='6px';
+    (p.tags||[]).forEach(t=>{ const s = document.createElement('span'); s.className='tag'; s.textContent = '#'+t; tagsWrap.appendChild(s); });
+    const controls = document.createElement('div'); controls.className='actions';
+    const play = document.createElement('button'); play.className='play'; play.textContent='Play';
+    let audioUrl = null;
     play.addEventListener('click',()=>{
-      if(!audioUrl){ const byteString=atob(p.base64); const ab=new ArrayBuffer(byteString.length); const ia=new Uint8Array(ab); for(let i=0;i<byteString.length;i++) ia[i]=byteString.charCodeAt(i); audioUrl=URL.createObjectURL(new Blob([ab],{type:p.mime})); }
-      const a=new Audio(audioUrl); a.play();
+      if(!audioUrl){ const byteString = atob(p.base64); const ab = new ArrayBuffer(byteString.length); const ia = new Uint8Array(ab); for(let i=0;i<byteString.length;i++) ia[i]=byteString.charCodeAt(i); audioUrl = URL.createObjectURL(new Blob([ab],{type:p.mime})); }
+      const a = new Audio(audioUrl); a.play();
     });
-    const likeBtn=document.createElement('button'); likeBtn.className='like'; likeBtn.textContent='❤ '+p.likes;
+    const likeBtn = document.createElement('button'); likeBtn.className='like'; likeBtn.textContent='❤ '+p.likes;
     likeBtn.addEventListener('click',()=>{ p.likes++; savePost(p); renderPosts(); });
     controls.appendChild(play); controls.appendChild(likeBtn);
     meta.appendChild(whoRow); meta.appendChild(cap); meta.appendChild(tagsWrap); meta.appendChild(controls);
@@ -275,11 +267,11 @@ function renderPosts(){
     postsEl.appendChild(div);
   });
 }
-function savePost(post){ const list=JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]'); const idx=list.findIndex(x=>x.id===post.id); if(idx>=0){ list[idx]=post; } else { list.unshift(post); } localStorage.setItem('openvoice_posts_v1',JSON.stringify(list)); }
-function timeAgo(ts){ const d=Date.now()-ts; if(d<60000)return'just now'; if(d<3600000)return Math.floor(d/60000)+'m'; if(d<86400000)return Math.floor(d/3600000)+'h'; return new Date(ts).toLocaleString(); }
-clearAll.addEventListener('click',()=>{ if(confirm('Clear all local posts?')){ localStorage.removeItem('openvoice_posts_v1'); renderPosts(); } });
+function savePost(post){ const list = JSON.parse(localStorage.getItem('openvoice_posts_v1')||'[]'); const idx=list.findIndex(x=>x.id===post.id); if(idx>=0){ list[idx]=post; } else list.unshift(post); localStorage.setItem('openvoice_posts_v1', JSON.stringify(list)); }
+function timeAgo(ts){ const d = Date.now()-ts; if(d<60000) return 'just now'; if(d<3600000) return Math.floor(d/60000)+'m'; if(d<86400000) return Math.floor(d/3600000)+'h'; return new Date(ts).toLocaleString(); }
 
-// ----- 初始化 -----
+clearAll.addEventListener('click', ()=>{ if(confirm('Clear all local posts?')){ localStorage.removeItem('openvoice_posts_v1'); renderPosts(); } });
+
 renderPosts();
 </script>
 </body>
